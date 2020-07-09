@@ -2,50 +2,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pgsql
+  name: my-pg-deploy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: pgsql
+      app: my-pg-app
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+    type: Recreate
   template:
     metadata:
       labels:
-        app: webdav
+        app: my-pg-app
     spec:
       initContainers:
       - image: busybox
-        name: mount-permissions-fix
-        command: ["sh", "-c", "chmod 777 /data"]
+        name: make-data-dir
+        command: ["sh", "-c", "mkdir /data/pgdata"]
         volumeMounts:
-        - name: data
+        - name: pg-data
           mountPath: /data
       containers:
-      - image: nginx:1.14
-        name: nginx
+      - image: postgres:10.13
+        name: postgres
+        env:
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          - name: POSTGRES_DB
+            value: testdatabase
+          - name: POSTGRES_USER
+            value: testuser
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: pg-pass
         ports:
-        - containerPort: 80
+        - containerPort: 5432
+          protocol: TCP
         resources:
           requests:
-            cpu: 100m
-            memory: 100Mi
+            cpu: 500m
+            memory: 1Gi
           limits:
-            cpu: 100m
-            memory: 100Mi
+            cpu: 500m
+            memory: 1Gi
         volumeMounts:
-        - name: config
-          mountPath: /etc/nginx/conf.d
-        - name: data
-          mountPath: /data
+        - name: pg-data
+          mountPath: /var/lib/postgresql/data
       volumes:
-      - name: config
-        configMap:
-          name: webdav
-      - name: data
+      - name: pg-data
         persistentVolumeClaim:
-          claimName: webdav
+          claimName: my-pvc
