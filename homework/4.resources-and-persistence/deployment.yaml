@@ -18,7 +18,7 @@ spec:
       initContainers:
       - image: busybox
         name: make-data-dir
-        command: ["sh", "-c", "mkdir /data/pgdata"]
+        command: ["sh", "-c", "mkdir -p /data/pgdata"]
         volumeMounts:
         - name: pg-data
           mountPath: /data
