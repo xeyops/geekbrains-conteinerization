@@ -15,13 +15,6 @@ spec:
       labels:
         app: my-pg-app
     spec:
-      initContainers:
-      - image: busybox
-        name: make-data-dir
-        command: ["sh", "-c", "mkdir -p /data/pgdata"]
-        volumeMounts:
-        - name: pg-data
-          mountPath: /data
       containers:
       - image: postgres:10.13
         name: postgres
