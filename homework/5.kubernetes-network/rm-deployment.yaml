@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-rm-deploy
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-rm-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: my-rm-app
+    spec:
+      containers:
+      - image: redmine:4.1.1
+        name: redmine
+        env:
+          - name: REDMINE_DB_POSTGRES
+            valueFrom:
+              configMapKeyRef:
+                name: my-configmap
+                key: REDMINE_DB_POSTGRES
+          - name: REDMINE_DB_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: my-configmap
+                key: POSTGRES_USER
+          - name: REDMINE_DB_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: my-configmap
+                key: POSTGRES_DB
+          - name: REDMINE_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: my-secret
+                key: pg-pass
+          - name: REDMINE_SECRET_KEY_BASE
+            valueFrom:
+              secretKeyRef:
+                name: my-secret
+                key: rm-key
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 300m
+            memory: 1Gi
+          limits:
+            cpu: '1'
+            memory: 2Gi

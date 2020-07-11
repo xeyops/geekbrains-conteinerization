@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-pg-deploy
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-pg-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: my-pg-app
+    spec:
+      containers:
+      - image: postgres:10.13
+        name: postgres
+        envFrom:
+          - configMapRef:
+              name: my-configmap
+        env:
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: pg-pass
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        volumeMounts:
+        - name: pg-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: pg-data
+        persistentVolumeClaim:
+          claimName: my-pvc
