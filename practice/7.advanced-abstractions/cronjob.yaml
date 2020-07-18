@@ -18,5 +18,5 @@ spec:
             args:
             - /bin/sh
             - -c
-            - date; echo Hello from the Kubernetes cluster
+            - while true; do sleep 1; date; echo Hello from the Kubernetes cluster; done
           restartPolicy: Never
